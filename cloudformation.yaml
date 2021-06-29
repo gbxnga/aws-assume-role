@@ -1,0 +1,61 @@
+
+Parameters:
+  PolicyName:
+    Type: String
+    Description: Policy name
+    Default: example-policy-cf
+  UserName:
+    Type: String
+    Description: User name
+    Default: test-user-cf
+  RoleName:
+    Type: String
+    Description: Role name
+    Default: example-role-cf
+
+
+Resources:
+  myUser:
+    Type: 'AWS::IAM::User'
+    Properties:
+      UserName: !Ref UserName
+      # Policies:
+      #   - !Ref myPolicy
+  myPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Ref PolicyName
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'ec2:Describe*'
+              - 'iam:ListRoles'
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - 'sts:AssumeRole'
+            Resource: 
+              - !Sub arn:aws:iam::${AWS::AccountId}:role/${RoleName}
+      Users:
+        - !Ref myUser
+  myRole: 
+    Type: AWS::IAM::Role
+    Properties: 
+      RoleName: !Ref RoleName
+      AssumeRolePolicyDocument: # (required) only one trust policy with a role
+        Version: '2012-10-17'
+        Statement: 
+          - 
+            Effect: Allow
+            Principal: 
+              AWS: 
+                - !Sub arn:aws:iam::${AWS::AccountId}:user/${UserName}
+            Action: 
+              - 'sts:AssumeRole'
+      ManagedPolicyArns: 
+        - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+
+
+      
